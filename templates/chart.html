@@ -1,0 +1,208 @@
+{% extends "base.html" %}
+
+{% block title %}{{ company_name }} ({{ symbol }}) - Stock Chart{% endblock %}
+
+{% block content %}
+<div class="animate-fade-in">
+    <!-- Stock Info Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-body">
+                    <div class="row align-items-center">
+                        <div class="col-md-8">
+                            <h2 class="card-title mb-1">
+                                <i class="fas fa-chart-line me-2 text-primary"></i>
+                                {{ company_name }}
+                            </h2>
+                            <p class="text-muted mb-2">{{ symbol }}</p>
+                            <h3 class="mb-0">
+                                ${{ "%.2f"|format(current_price) }}
+                                <span class="fs-6 {% if daily_change >= 0 %}price-positive{% else %}price-negative{% endif %}">
+                                    {% if daily_change >= 0 %}
+                                        <i class="fas fa-arrow-up me-1"></i>
+                                        +${{ "%.2f"|format(daily_change) }}
+                                        (+{{ "%.2f"|format(daily_change_pct) }}%)
+                                    {% else %}
+                                        <i class="fas fa-arrow-down me-1"></i>
+                                        ${{ "%.2f"|format(daily_change) }}
+                                        ({{ "%.2f"|format(daily_change_pct) }}%)
+                                    {% endif %}
+                                </span>
+                            </h3>
+                        </div>
+                        <div class="col-md-4 text-md-end">
+                            <a href="/" class="btn btn-outline-primary me-2">
+                                <i class="fas fa-arrow-left me-1"></i>
+                                Back to Search
+                            </a>
+                            <form method="post" action="/chart" class="d-inline">
+                                <input type="hidden" name="symbol" value="{{ symbol }}">
+                                <div class="btn-group">
+                                    <button type="button" class="btn btn-primary dropdown-toggle" data-bs-toggle="dropdown">
+                                        <i class="fas fa-calendar me-1"></i>
+                                        Change Period
+                                    </button>
+                                    <ul class="dropdown-menu">
+                                        <li><button class="dropdown-item period-btn" type="button" data-period="1d">1 Day</button></li>
+                                        <li><button class="dropdown-item period-btn" type="button" data-period="5d">5 Days</button></li>
+                                        <li><button class="dropdown-item period-btn" type="button" data-period="1mo">1 Month</button></li>
+                                        <li><button class="dropdown-item period-btn" type="button" data-period="3mo">3 Months</button></li>
+                                        <li><button class="dropdown-item period-btn" type="button" data-period="6mo">6 Months</button></li>
+                                        <li><button class="dropdown-item period-btn" type="button" data-period="1y">1 Year</button></li>
+                                        <li><button class="dropdown-item period-btn" type="button" data-period="2y">2 Years</button></li>
+                                        <li><button class="dropdown-item period-btn" type="button" data-period="5y">5 Years</button></li>
+                                    </ul>
+                                </div>
+                                <input type="hidden" name="period" id="selected-period" value="{{ period }}">
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Chart Container -->
+    <div class="row">
+        <div class="col-12">
+            <div class="chart-container">
+                <div id="stock-chart" style="width:100%;height:600px;"></div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Additional Stats -->
+    <div class="row mt-4">
+        <div class="col-md-4">
+            <div class="stats-card text-center">
+                <i class="fas fa-chart-bar fs-2 mb-3"></i>
+                <h5>Period</h5>
+                <p class="mb-0">{{ period.upper() }}</p>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="stats-card text-center">
+                <i class="fas fa-coins fs-2 mb-3"></i>
+                <h5>Current Price</h5>
+                <p class="mb-0">${{ "%.2f"|format(current_price) }}</p>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="stats-card text-center">
+                <i class="fas fa-{% if daily_change >= 0 %}arrow-trend-up{% else %}arrow-trend-down{% endif %} fs-2 mb-3"></i>
+                <h5>Daily Change</h5>
+                <p class="mb-0">{{ "%.2f"|format(daily_change_pct) }}%</p>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Quick Actions -->
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">
+                        <i class="fas fa-rocket me-2"></i>
+                        Quick Actions
+                    </h5>
+                    <div class="row g-2">
+                        <div class="col-6 col-md-2">
+                            <button class="btn btn-outline-primary w-100 quick-stock-btn" data-symbol="AAPL">
+                                <i class="fab fa-apple me-1"></i>AAPL
+                            </button>
+                        </div>
+                        <div class="col-6 col-md-2">
+                            <button class="btn btn-outline-primary w-100 quick-stock-btn" data-symbol="GOOGL">
+                                <i class="fab fa-google me-1"></i>GOOGL
+                            </button>
+                        </div>
+                        <div class="col-6 col-md-2">
+                            <button class="btn btn-outline-primary w-100 quick-stock-btn" data-symbol="TSLA">
+                                <i class="fas fa-car me-1"></i>TSLA
+                            </button>
+                        </div>
+                        <div class="col-6 col-md-2">
+                            <button class="btn btn-outline-primary w-100 quick-stock-btn" data-symbol="MSFT">
+                                <i class="fab fa-microsoft me-1"></i>MSFT
+                            </button>
+                        </div>
+                        <div class="col-6 col-md-2">
+                            <button class="btn btn-outline-primary w-100 quick-stock-btn" data-symbol="AMZN">
+                                <i class="fab fa-amazon me-1"></i>AMZN
+                            </button>
+                        </div>
+                        <div class="col-6 col-md-2">
+                            <button class="btn btn-outline-primary w-100 quick-stock-btn" data-symbol="NVDA">
+                                <i class="fas fa-microchip me-1"></i>NVDA
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+// Render the Plotly chart
+var chartData = {{ chart_json|safe }};
+Plotly.newPlot('stock-chart', chartData.data, chartData.layout, {
+    responsive: true,
+    displayModeBar: true,
+    modeBarButtonsToRemove: ['pan2d', 'lasso2d', 'select2d'],
+    displaylogo: false
+});
+
+// Period change functionality
+document.querySelectorAll('.period-btn').forEach(function(btn) {
+    btn.addEventListener('click', function() {
+        document.getElementById('selected-period').value = this.getAttribute('data-period');
+        this.closest('form').submit();
+    });
+});
+
+// Quick stock buttons
+document.querySelectorAll('.quick-stock-btn').forEach(function(btn) {
+    btn.addEventListener('click', function() {
+        var form = document.createElement('form');
+        form.method = 'POST';
+        form.action = '/chart';
+        
+        var symbolInput = document.createElement('input');
+        symbolInput.type = 'hidden';
+        symbolInput.name = 'symbol';
+        symbolInput.value = this.getAttribute('data-symbol');
+        
+        var periodInput = document.createElement('input');
+        periodInput.type = 'hidden';
+        periodInput.name = 'period';
+        periodInput.value = '{{ period }}';
+        
+        form.appendChild(symbolInput);
+        form.appendChild(periodInput);
+        document.body.appendChild(form);
+        form.submit();
+    });
+});
+
+// Auto-refresh every 5 minutes during market hours (optional feature)
+function autoRefresh() {
+    var now = new Date();
+    var hour = now.getHours();
+    var day = now.getDay();
+    
+    // Refresh during market hours (9 AM - 4 PM, Monday-Friday, Eastern Time)
+    if (day >= 1 && day <= 5 && hour >= 9 && hour <= 16) {
+        setTimeout(function() {
+            location.reload();
+        }, 300000); // 5 minutes
+    }
+}
+
+// Uncomment the line below to enable auto-refresh
+// autoRefresh();
+</script>
+{% endblock %}
