@@ -1,7 +1,0 @@
-fastapi
-uvicorn[standard]
-yfinance
-plotly
-pandas
-jinja2
-python-multipart
